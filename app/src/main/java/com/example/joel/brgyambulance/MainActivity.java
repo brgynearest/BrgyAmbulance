@@ -106,6 +106,19 @@ public class MainActivity extends AppCompatActivity {
                                     @Override
                                     public void onSuccess(AuthResult authResult) {
 
+                                        FirebaseDatabase.getInstance().getReference(Common.barangay_ambulance)
+                                                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                                            .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                        @Override
+                                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                                            Common.currentAmbulance = dataSnapshot.getValue(Barangay.class);
+                                                        }
+
+                                                    @Override
+                                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                                    }
+                                                });
                                         startActivity(new Intent(MainActivity.this,MapAmbulance.class));
                                         finish();
                                     }

@@ -71,6 +71,7 @@ public class VictimCall extends AppCompatActivity {
                 Intent intent = new Intent(VictimCall.this, BrgyTracking.class);
                 intent.putExtra("lat",lat);
                 intent.putExtra("lng",lng);
+                intent.putExtra("victimId",victimId);
                 startActivity(intent);
                 finish();
             }
@@ -96,7 +97,7 @@ public class VictimCall extends AppCompatActivity {
 
     private void declinerequest(String victimId) {
         Token token = new Token(victimId);
-        Notification notification = new Notification("Notice","Brgy Ambulance has declined your request");
+        Notification notification = new Notification("Declined","Brgy Ambulance has declined your request");
         Sender sender = new Sender(notification,token.getToken());
         mFCMService.sendMessage(sender)
                 .enqueue(new Callback<FCMResponse>() {

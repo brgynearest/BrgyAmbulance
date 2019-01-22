@@ -19,9 +19,16 @@ import android.widget.Toast;
 
 import com.example.joel.brgyambulance.Helper.DirectionJSONParser;
 import com.example.joel.brgyambulance.Interaction.Common;
+import com.example.joel.brgyambulance.Model.FCMResponse;
+import com.example.joel.brgyambulance.Model.Notification;
+import com.example.joel.brgyambulance.Model.Sender;
+import com.example.joel.brgyambulance.Model.Token;
+import com.example.joel.brgyambulance.Remote.IFCMService;
 import com.example.joel.brgyambulance.Remote.IGoogleAPI;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
+import com.firebase.geofire.GeoQuery;
+import com.firebase.geofire.GeoQueryDataEventListener;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -46,7 +53,9 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.SquareCap;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -78,11 +87,15 @@ public class BrgyTracking extends FragmentActivity implements OnMapReadyCallback
     private static int FATEST_INTERVAL = 3000;
     private static int DISPLACEMENT = 10;
 
-    IGoogleAPI mService;
+    String victimId;
     double victimlat,victimlng;
     private Circle victimMarker;
     private Polyline direction;
     private Marker ambulanceMarker;
+    IGoogleAPI mService;
+    IFCMService mFCMService;
+
+    GeoFire geoFire;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,9 +109,11 @@ public class BrgyTracking extends FragmentActivity implements OnMapReadyCallback
         {
             victimlat = getIntent().getDoubleExtra("lat",-1.0);
             victimlng = getIntent().getDoubleExtra("lng",-1.0);
+            victimId = getIntent().getStringExtra("victimId");
         }
 
         mService = Common.getIGoogleAPI();
+        mFCMService = Common.getFCMService();
         setUpLocation();
 
     }
@@ -147,10 +162,65 @@ public class BrgyTracking extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
         victimMarker = mMap.addCircle(new CircleOptions()
         .center(new LatLng(victimlat,victimlng))
-        .radius(10)
+        .radius(50)
         .strokeColor(android.R.color.holo_red_light)
         .fillColor(0x220000FF)
         .strokeWidth(5.0f));
+
+        geoFire = new GeoFire(FirebaseDatabase.getInstance().getReference(Common.available_Ambulance));
+        GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(victimlat,victimlng),0.05f);
+        geoQuery.addGeoQueryDataEventListener(new GeoQueryDataEventListener() {
+            @Override
+            public void onDataEntered(DataSnapshot dataSnapshot, GeoLocation location) {
+                sendArrivedNotification(victimId);
+            }
+
+            @Override
+            public void onDataExited(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onDataMoved(DataSnapshot dataSnapshot, GeoLocation location) {
+
+            }
+
+            @Override
+            public void onDataChanged(DataSnapshot dataSnapshot, GeoLocation location) {
+
+            }
+
+            @Override
+            public void onGeoQueryReady() {
+
+            }
+
+            @Override
+            public void onGeoQueryError(DatabaseError error) {
+
+            }
+        });
+    }
+
+    private void sendArrivedNotification(String victimId) {
+        Token token  = new Token(victimId);
+        Notification notification = new Notification("Arrvied",String.format("The Ambulance %s has arrived to rescue",Common.currentAmbulance.getName()));
+        Sender sender = new Sender(notification,token.getToken());
+
+        mFCMService.sendMessage(sender).enqueue(new Callback<FCMResponse>() {
+            @Override
+            public void onResponse(Call<FCMResponse> call, Response<FCMResponse> response) {
+                if(response.body().success!=1)
+                {
+                    Toast.makeText(BrgyTracking.this, "Failed", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<FCMResponse> call, Throwable t) {
+
+            }
+        });
     }
 
     @Override
