@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">BrgyAmbulance</string>
+    <string name="title_activity_map_ambulance">Map</string>
+    <string name="google_directions_api">AIzaSyC1dnsPh7aYbOnzfB-IpcNYdFAVtPHYQGQ</string>
+</resources>
