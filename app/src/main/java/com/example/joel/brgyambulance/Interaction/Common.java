@@ -3,6 +3,7 @@ package com.example.joel.brgyambulance.Interaction;
 
 import android.location.Location;
 
+import com.example.joel.brgyambulance.Model.Barangay;
 import com.example.joel.brgyambulance.Remote.FCMClient;
 import com.example.joel.brgyambulance.Remote.IFCMService;
 import com.example.joel.brgyambulance.Remote.IGoogleAPI;
@@ -18,6 +19,7 @@ public class Common  {
     public static final String pickup_request = "helprequest";
     public static final String token = "Tokens";
 
+    public static Barangay currentAmbulance;
     public static Location mLastlocation=null;
 
     public static final String baseURL ="https://maps.googleapis.com";

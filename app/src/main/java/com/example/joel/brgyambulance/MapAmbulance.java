@@ -211,8 +211,6 @@ public class MapAmbulance extends FragmentActivity implements OnMapReadyCallback
                         Snackbar.make(mapFragment.getView(), "You are not available", Snackbar.LENGTH_LONG).show();
                     }
                 }catch (Exception ex){
-                    //catching the null error
-                    //error: Attempt to invoke virtual method 'void android.os.Handler.removeCallbacks(java.lang.Runnable)' on a null object reference
                     Log.d(TAG,"ToggleSwitch Error:" + ex.getMessage());
 
                 }

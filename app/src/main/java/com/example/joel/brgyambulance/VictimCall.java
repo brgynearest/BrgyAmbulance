@@ -1,6 +1,7 @@
 package com.example.joel.brgyambulance;
 
 
+import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -47,6 +48,7 @@ public class VictimCall extends AppCompatActivity {
     IGoogleAPI mService;
     String victimId;
     IFCMService mFCMService;
+    double lat,lng;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +65,16 @@ public class VictimCall extends AppCompatActivity {
                     declinerequest(victimId);
             }
         });
+        btnrespond.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(VictimCall.this, BrgyTracking.class);
+                intent.putExtra("lat",lat);
+                intent.putExtra("lng",lng);
+                startActivity(intent);
+                finish();
+            }
+        });
 
         mService = Common.getIGoogleAPI();
         mFCMService = Common.getFCMService();
@@ -75,11 +87,10 @@ public class VictimCall extends AppCompatActivity {
 
         if(getIntent() !=null)
         {
-            double lat = getIntent().getDoubleExtra("lat",-1.0);
-            double lng = getIntent().getDoubleExtra("lng",-1.0);
+            lat = getIntent().getDoubleExtra("lat",-1.0);
+            lng = getIntent().getDoubleExtra("lng",-1.0);
             victimId = getIntent().getStringExtra("victim");
             getDirection(lat,lng);
-
         }
     }
 
@@ -91,13 +102,12 @@ public class VictimCall extends AppCompatActivity {
                 .enqueue(new Callback<FCMResponse>() {
                     @Override
                     public void onResponse(Call<FCMResponse> call, Response<FCMResponse> response) {
-                        if(response.body().success==1)
+                        if(response.body().getSuccess()==1)
                         {
                             Toast.makeText(VictimCall.this, "You Declined the Victims Request", Toast.LENGTH_SHORT).show();
                             finish();
                         }
                     }
-
                     @Override
                     public void onFailure(Call<FCMResponse> call, Throwable t) {
 
