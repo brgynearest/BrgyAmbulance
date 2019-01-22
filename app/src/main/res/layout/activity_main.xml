@@ -9,6 +9,7 @@
 
 
     <LinearLayout
+        android:id="@+id/btnsignregister"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="500dp"
@@ -32,6 +33,20 @@
             android:layout_marginRight="6dp"
             android:layout_weight="1"
             android:text="Register" />
-    </LinearLayout>
 
+
+    </LinearLayout>
+    <TextView
+        android:layout_below="@id/btnsignregister"
+        android:id="@+id/textforgotpassword"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="FORGOT PASSWORD ?"
+        android:textColor="@android:color/holo_blue_dark"
+        android:textSize="15sp"
+        android:layout_marginTop="20dp"
+        android:textAlignment="center"
+        />
 </RelativeLayout>

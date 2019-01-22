@@ -31,6 +31,7 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.AutocompleteFilter;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
@@ -57,6 +58,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
+import com.google.maps.android.SphericalUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -105,6 +107,7 @@ public class MapAmbulance extends FragmentActivity implements OnMapReadyCallback
     private int index,next;
 
     private PlaceAutocompleteFragment places;
+    AutocompleteFilter typeFilter;
     private String destination;
     private PolylineOptions polylineOptions,blackpolylineOptions;
     private Polyline blackPolyline,greyPolyline;
@@ -220,7 +223,10 @@ public class MapAmbulance extends FragmentActivity implements OnMapReadyCallback
 
         polyLineList = new ArrayList<>();
 
-
+        typeFilter = new AutocompleteFilter.Builder()
+                .setTypeFilter(AutocompleteFilter.TYPE_FILTER_ADDRESS)
+                .setTypeFilter(3)
+                .build();
         places = (PlaceAutocompleteFragment)getFragmentManager().findFragmentById(R.id.places_autocomplete);
         places.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
@@ -478,6 +484,18 @@ public class MapAmbulance extends FragmentActivity implements OnMapReadyCallback
                 if(location_switch.isChecked()){
                     final double latitude = Common.mLastlocation.getLatitude();
                     final double longitude = Common.mLastlocation.getLongitude();
+
+                    LatLng center  = new LatLng(latitude,longitude);
+                    LatLng northside = SphericalUtil.computeOffset(center,100000,0);
+                    LatLng southside = SphericalUtil.computeOffset(center,100000,180);
+
+                    LatLngBounds bounds = LatLngBounds.builder()
+                            .include(northside)
+                            .include(southside)
+                            .build();
+
+                    places.setBoundsBias(bounds);
+                    places.setFilter(typeFilter);
 
                     geoFire.setLocation(FirebaseAuth.getInstance().getCurrentUser().getUid(), new GeoLocation(latitude, longitude)
                             , new GeoFire.CompletionListener() {

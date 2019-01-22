@@ -1,5 +1,6 @@
 package com.example.joel.brgyambulance;
 
+import android.app.DatePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.annotation.NonNull;
@@ -9,16 +10,20 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.joel.brgyambulance.Interaction.Common;
 import com.example.joel.brgyambulance.Model.Barangay;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -38,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
     FirebaseDatabase db;
     DatabaseReference ambulance;
     RelativeLayout rootLayout;
-     public AlertDialog waitingDialog;
+    TextView txtforgotpwd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +71,53 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        txtforgotpwd = findViewById(R.id.textforgotpassword);
+        txtforgotpwd.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                showDialogForgotPwd();
+                return false;
+            }
+        });
+    }
+
+    private void showDialogForgotPwd() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
+        alertDialog.setTitle("FORGOT PASSWORD");
+        alertDialog.setMessage("Please enter your email address");
+
+        LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
+        View forgot_pwd_layout = inflater.inflate(R.layout.layout_forgot_pass,null);
+
+        final EditText edtEmail = forgot_pwd_layout.findViewById(R.id.edittext_email);
+        alertDialog.setView(forgot_pwd_layout);
+        alertDialog.setPositiveButton("RESET", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(final DialogInterface dialogInterface, int i) {
+               auth.sendPasswordResetEmail(edtEmail.getText().toString().trim())
+                       .addOnCompleteListener(new OnCompleteListener<Void>() {
+                           @Override
+                           public void onComplete(@NonNull Task<Void> task) {
+                               dialogInterface.dismiss();
+                               Snackbar.make(rootLayout,"Reset password link has been sent",Snackbar.LENGTH_SHORT).show();
+                           }
+                       }).addOnFailureListener(new OnFailureListener() {
+                   @Override
+                   public void onFailure(@NonNull Exception e) {
+                       dialogInterface.dismiss();
+                       Snackbar.make(rootLayout,""+e.getMessage(),Snackbar.LENGTH_SHORT).show();
+                   }
+               });
+            }
+        });
+        alertDialog.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        });
+
+        alertDialog.show();
     }
 
     private void showLoginDialog() {

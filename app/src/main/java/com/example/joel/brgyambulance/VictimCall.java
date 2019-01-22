@@ -103,7 +103,7 @@ public class VictimCall extends AppCompatActivity {
                 .enqueue(new Callback<FCMResponse>() {
                     @Override
                     public void onResponse(Call<FCMResponse> call, Response<FCMResponse> response) {
-                        if(response.body().getSuccess()==1)
+                        if(response.body().success==1)
                         {
                             Toast.makeText(VictimCall.this, "You Declined the Victims Request", Toast.LENGTH_SHORT).show();
                             finish();
