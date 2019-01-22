@@ -15,11 +15,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
 import com.example.joel.brgyambulance.Interaction.Common;
 import com.example.joel.brgyambulance.Model.Token;
@@ -53,9 +50,11 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.SquareCap;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
 
@@ -110,6 +109,8 @@ public class MapAmbulance extends FragmentActivity implements OnMapReadyCallback
     private PolylineOptions polylineOptions,blackpolylineOptions;
     private Polyline blackPolyline,greyPolyline;
     private IGoogleAPI mService;
+
+    DatabaseReference availableRef,currentAmbulanceRef;
 
     Runnable drawPathRunnable = new Runnable() {
         @Override
@@ -174,16 +175,35 @@ public class MapAmbulance extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        availableRef = FirebaseDatabase.getInstance().getReference().child(".info/connected");
+        currentAmbulanceRef = FirebaseDatabase.getInstance().getReference(Common.available_Ambulance)
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        availableRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                currentAmbulanceRef.onDisconnect().removeValue();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
         location_switch = findViewById(R.id.location_on_off_switch);
         location_switch.setOnCheckedChangeListener(new MaterialAnimatedSwitch.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(boolean sAvailable) {
                 try {
                     if (sAvailable) {
+
+                        FirebaseDatabase.getInstance().goOnline();
                         startLocationUpdates();
                         displayLocation();
                         Snackbar.make(mapFragment.getView(), "You are available", Snackbar.LENGTH_LONG).show();
                     } else {
+
+                        FirebaseDatabase.getInstance().goOffline();
                         stopLocationUpdates();
                         mCurrent.remove();
                         mMap.clear();

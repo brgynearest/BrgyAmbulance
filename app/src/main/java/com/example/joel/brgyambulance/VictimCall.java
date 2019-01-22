@@ -1,17 +1,22 @@
 package com.example.joel.brgyambulance;
 
-import android.animation.ValueAnimator;
-import android.graphics.Color;
+
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
-import android.view.animation.LinearInterpolator;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.joel.brgyambulance.Interaction.Common;
+import com.example.joel.brgyambulance.Model.FCMResponse;
+import com.example.joel.brgyambulance.Model.Notification;
+import com.example.joel.brgyambulance.Model.Sender;
+import com.example.joel.brgyambulance.Model.Token;
 import com.example.joel.brgyambulance.Remote.IFCMService;
 import com.example.joel.brgyambulance.Remote.IGoogleAPI;
 import com.google.android.gms.maps.CameraUpdate;
@@ -37,16 +42,30 @@ import retrofit2.Response;
 public class VictimCall extends AppCompatActivity {
 
     TextView textTime,textDistance,textAddress;
-
+    Button btnrespond,btndecline;
     MediaPlayer mediaPlayer;
     IGoogleAPI mService;
+    String victimId;
+    IFCMService mFCMService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_victim_call);
 
+
+        btnrespond = findViewById(R.id.btn_respond);
+        btndecline = findViewById(R.id.btn_decline);
+        btndecline.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(TextUtils.isEmpty(victimId))
+                    declinerequest(victimId);
+            }
+        });
+
         mService = Common.getIGoogleAPI();
+        mFCMService = Common.getFCMService();
         textTime = findViewById(R.id.textTime);
         textAddress = findViewById(R.id.textAddress);
         textDistance = findViewById(R.id.textDistance);
@@ -58,9 +77,32 @@ public class VictimCall extends AppCompatActivity {
         {
             double lat = getIntent().getDoubleExtra("lat",-1.0);
             double lng = getIntent().getDoubleExtra("lng",-1.0);
+            victimId = getIntent().getStringExtra("victim");
             getDirection(lat,lng);
 
         }
+    }
+
+    private void declinerequest(String victimId) {
+        Token token = new Token(victimId);
+        Notification notification = new Notification("Notice","Brgy Ambulance has declined your request");
+        Sender sender = new Sender(notification,token.getToken());
+        mFCMService.sendMessage(sender)
+                .enqueue(new Callback<FCMResponse>() {
+                    @Override
+                    public void onResponse(Call<FCMResponse> call, Response<FCMResponse> response) {
+                        if(response.body().success==1)
+                        {
+                            Toast.makeText(VictimCall.this, "You Declined the Victims Request", Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<FCMResponse> call, Throwable t) {
+
+                    }
+                });
     }
 
 
