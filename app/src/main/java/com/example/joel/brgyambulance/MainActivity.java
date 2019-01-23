@@ -171,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
 
                                                     }
                                                 });
-                                        startActivity(new Intent(MainActivity.this,MapAmbulance.class));
+                                        startActivity(new Intent(MainActivity.this,AmbulanceHome.class));
                                         finish();
                                     }
                                 })
@@ -205,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
         final EditText edittext_email = register_layout.findViewById(R.id.edittext_email);
         final EditText edittext_password = register_layout.findViewById(R.id.edittext_password);
         final EditText edittext_name = register_layout.findViewById(R.id.edittext_name);
-        final EditText edittext_phone = register_layout.findViewById(R.id.edittext_phone);
+        final EditText edittext_platenumber = register_layout.findViewById(R.id.edittext_platenumber);
 
         dialog.setView(register_layout);
 
@@ -226,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
                     Snackbar.make(rootLayout,"Please enter your Name", Snackbar.LENGTH_SHORT).show();
                     return;
                 }
-                if(TextUtils.isEmpty(edittext_phone.getText().toString())){
+                if(TextUtils.isEmpty(edittext_platenumber.getText().toString())){
                     Snackbar.make(rootLayout,"Please enter your phone", Snackbar.LENGTH_SHORT).show();
                     return;
                 }
@@ -243,7 +243,7 @@ public class MainActivity extends AppCompatActivity {
                                 brgy.setEmail(edittext_email.getText().toString());
                                 brgy.setPassword(edittext_password.getText().toString());
                                 brgy.setName(edittext_name.getText().toString());
-                                brgy.setPhone(edittext_phone.getText().toString());
+                                brgy.setPlatenumber(edittext_platenumber.getText().toString());
 
                                 ambulance.child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                                         .setValue(brgy)

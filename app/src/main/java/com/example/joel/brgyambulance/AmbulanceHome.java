@@ -1,24 +1,33 @@
 package com.example.joel.brgyambulance;
 
-
 import android.Manifest;
 import android.animation.ValueAnimator;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.os.Bundle;
 import android.os.Handler;
-import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
-import android.os.Bundle;
 import android.util.Log;
-import android.view.animation.Interpolator;
+import android.view.View;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.animation.LinearInterpolator;
 import android.widget.Toast;
+
 import com.example.joel.brgyambulance.Interaction.Common;
+import com.example.joel.brgyambulance.Model.Barangay;
 import com.example.joel.brgyambulance.Model.Token;
 import com.example.joel.brgyambulance.Remote.IGoogleAPI;
 import com.firebase.geofire.GeoFire;
@@ -57,28 +66,27 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.FirebaseInstanceIdService;
 import com.google.maps.android.SphericalUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.jar.Attributes;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MapAmbulance extends FragmentActivity implements OnMapReadyCallback
-    ,GoogleApiClient.OnConnectionFailedListener
-    ,GoogleApiClient.ConnectionCallbacks
-    ,LocationListener {
+public class AmbulanceHome extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener,
+        OnMapReadyCallback
+        ,GoogleApiClient.OnConnectionFailedListener
+        ,GoogleApiClient.ConnectionCallbacks
+        ,LocationListener {
 
-    private static final String TAG = "MapAmbulance";
+    private static final String TAG = "AmbulanceHome";
 
     private GoogleMap mMap;
     private static final int MY_PERMISSION_REQUEST_CODE = 7000;
@@ -152,7 +160,6 @@ public class MapAmbulance extends FragmentActivity implements OnMapReadyCallback
             handler.postDelayed(this, 3000);
         }
     };
-
     private float getBearing(LatLng startPosition, LatLng endPosition) {
         double lat = Math.abs(startPosition.latitude - endPosition.latitude);
         double lng = Math.abs(startPosition.longitude - endPosition.longitude);
@@ -172,8 +179,19 @@ public class MapAmbulance extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_map_ambulance);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        setContentView(R.layout.activity_ambulance_home);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -239,13 +257,13 @@ public class MapAmbulance extends FragmentActivity implements OnMapReadyCallback
                 }
                 else
                 {
-                    Toast.makeText(MapAmbulance.this, "Availability needed to turn on", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AmbulanceHome.this, "Availability needed to turn on", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onError(Status status) {
-                Toast.makeText(MapAmbulance.this, ""+status.toString(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(AmbulanceHome.this, ""+status.toString(), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -264,7 +282,7 @@ public class MapAmbulance extends FragmentActivity implements OnMapReadyCallback
         DatabaseReference tokens = db.getReference(Common.token);
         Token token = new Token(FirebaseInstanceId.getInstance().getToken());
         tokens.child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                    .setValue(token);
+                .setValue(token);
     }
 
     private void getDirection() {
@@ -291,58 +309,58 @@ public class MapAmbulance extends FragmentActivity implements OnMapReadyCallback
                                     String polyLine = poly.getString("points");
                                     polyLineList = decodePoly(polyLine);
                                 }
-                                    LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                                    for(LatLng latLang:polyLineList)
-                                        builder.include(latLang);
-                                    LatLngBounds bounds = builder.build();
-                                    CameraUpdate mCameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds,2);
-                                    mMap.animateCamera(mCameraUpdate);
+                                LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                                for(LatLng latLang:polyLineList)
+                                    builder.include(latLang);
+                                LatLngBounds bounds = builder.build();
+                                CameraUpdate mCameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds,2);
+                                mMap.animateCamera(mCameraUpdate);
 
-                                    polylineOptions = new PolylineOptions();
-                                    polylineOptions.color(Color.GREEN);
-                                    polylineOptions.width(5);
-                                    polylineOptions.startCap(new SquareCap());
-                                    polylineOptions.endCap(new SquareCap());
-                                    polylineOptions.jointType(JointType.ROUND);
-                                    polylineOptions.addAll(polyLineList);
-                                    greyPolyline = mMap.addPolyline(polylineOptions);
+                                polylineOptions = new PolylineOptions();
+                                polylineOptions.color(Color.GREEN);
+                                polylineOptions.width(5);
+                                polylineOptions.startCap(new SquareCap());
+                                polylineOptions.endCap(new SquareCap());
+                                polylineOptions.jointType(JointType.ROUND);
+                                polylineOptions.addAll(polyLineList);
+                                greyPolyline = mMap.addPolyline(polylineOptions);
 
-                                    blackpolylineOptions = new PolylineOptions();
-                                    blackpolylineOptions.color(Color.RED);
-                                    blackpolylineOptions.width(5);
-                                    blackpolylineOptions.startCap(new SquareCap());
-                                    blackpolylineOptions.endCap(new SquareCap());
-                                    blackpolylineOptions.jointType(JointType.ROUND);
-                                    blackPolyline = mMap.addPolyline(blackpolylineOptions);
+                                blackpolylineOptions = new PolylineOptions();
+                                blackpolylineOptions.color(Color.RED);
+                                blackpolylineOptions.width(5);
+                                blackpolylineOptions.startCap(new SquareCap());
+                                blackpolylineOptions.endCap(new SquareCap());
+                                blackpolylineOptions.jointType(JointType.ROUND);
+                                blackPolyline = mMap.addPolyline(blackpolylineOptions);
 
-                                    mMap.addMarker(new MarkerOptions()
+                                mMap.addMarker(new MarkerOptions()
                                         .position(polyLineList.get(polyLineList.size()-1))
                                         .title("Example Victim"));
 
-                                    ValueAnimator polyLineAnimator = ValueAnimator.ofInt(0,100);
-                                    polyLineAnimator.setDuration(2000);
-                                    polyLineAnimator.setInterpolator(new LinearInterpolator());
-                                    polyLineAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                                        @Override
-                                        public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                                            List<LatLng> points = greyPolyline.getPoints();
-                                            int percentValue = (int)valueAnimator.getAnimatedValue();
-                                            int size = points.size();
-                                            int newPoints = (int) (size * (percentValue/100.0f));
-                                            List<LatLng> p = points.subList(0,newPoints);
-                                            blackPolyline.setPoints(p);
-                                        }
-                                    });
+                                ValueAnimator polyLineAnimator = ValueAnimator.ofInt(0,100);
+                                polyLineAnimator.setDuration(2000);
+                                polyLineAnimator.setInterpolator(new LinearInterpolator());
+                                polyLineAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                                    @Override
+                                    public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                                        List<LatLng> points = greyPolyline.getPoints();
+                                        int percentValue = (int)valueAnimator.getAnimatedValue();
+                                        int size = points.size();
+                                        int newPoints = (int) (size * (percentValue/100.0f));
+                                        List<LatLng> p = points.subList(0,newPoints);
+                                        blackPolyline.setPoints(p);
+                                    }
+                                });
 
-                                    polyLineAnimator.start();
-                                    ambulanceMarker = mMap.addMarker(new MarkerOptions()
-                                                        .position(currentPosition)
-                                                        .flat(true)
-                                                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.arrow)));
-                                    handler = new Handler();
-                                    index=-1;
-                                    next=1;
-                                    handler.postDelayed(drawPathRunnable,3000);
+                                polyLineAnimator.start();
+                                ambulanceMarker = mMap.addMarker(new MarkerOptions()
+                                        .position(currentPosition)
+                                        .flat(true)
+                                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.arrow)));
+                                handler = new Handler();
+                                index=-1;
+                                next=1;
+                                handler.postDelayed(drawPathRunnable,3000);
 
                             } catch (JSONException e) {
                                 e.printStackTrace();
@@ -352,7 +370,7 @@ public class MapAmbulance extends FragmentActivity implements OnMapReadyCallback
 
                         @Override
                         public void onFailure(Call<String> call, Throwable t) {
-                            Toast.makeText(MapAmbulance.this, ""+t.getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(AmbulanceHome.this, ""+t.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
         }
@@ -444,7 +462,6 @@ public class MapAmbulance extends FragmentActivity implements OnMapReadyCallback
         return true;
     }
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode)
@@ -463,96 +480,145 @@ public class MapAmbulance extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void stopLocationUpdates() {
-            if(ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION)!=PackageManager.PERMISSION_GRANTED &&
-                    ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED)
-            {
-                return;
+        if(ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION)!=PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED)
+        {
+            return;
+        }
+        LocationServices.FusedLocationApi.removeLocationUpdates(mgoogleApiClient,this);
+
+    }
+
+    private void displayLocation() {
+        if(ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION)!=PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED)
+        {
+            return;
+        }
+        Common.mLastlocation = LocationServices.FusedLocationApi.getLastLocation(mgoogleApiClient);
+        if (Common.mLastlocation!=null)
+        {
+            if(location_switch.isChecked()){
+                final double latitude = Common.mLastlocation.getLatitude();
+                final double longitude = Common.mLastlocation.getLongitude();
+
+                LatLng center  = new LatLng(latitude,longitude);
+                LatLng northside = SphericalUtil.computeOffset(center,100000,0);
+                LatLng southside = SphericalUtil.computeOffset(center,100000,180);
+
+                LatLngBounds bounds = LatLngBounds.builder()
+                        .include(northside)
+                        .include(southside)
+                        .build();
+
+                places.setBoundsBias(bounds);
+                places.setFilter(typeFilter);
+
+                geoFire.setLocation(FirebaseAuth.getInstance().getCurrentUser().getUid(), new GeoLocation(latitude, longitude)
+                        , new GeoFire.CompletionListener() {
+                            @Override
+                            public void onComplete(String key, DatabaseError error) {
+                                if(mCurrent!=null)
+                                    mCurrent.remove();
+                                mCurrent = mMap.addMarker(new MarkerOptions()
+                                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                                        .position(new LatLng(latitude,longitude))
+                                        .title(FirebaseAuth.getInstance().getCurrentUser().getDisplayName()+" Ambulance"));
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude,longitude),18.0f));
+
+                            }
+                        });
             }
-            LocationServices.FusedLocationApi.removeLocationUpdates(mgoogleApiClient,this);
+        }
+        else
+        {
+            Toast.makeText(this, "Cannot get Location!", Toast.LENGTH_SHORT).show();
+            Log.d("ERROR","Cannot get your Lcoation");
+        }
+    }
+
+    private void startLocationUpdates() {
+        if(ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION)!=PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED)
+        {
+            return;
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(mgoogleApiClient,mlocationRequest,this);
+
+    }
+
+
+
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.ambulance_home, menu);
+        return true;
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        if (id == R.id.nav_trip_history) {
+            // Handle the camera action
+        } else if (id == R.id.nav_trip_history) {
+
+        } else if (id == R.id.nav_help) {
+
+        } else if (id == R.id.nav_settings) {
+
+        } else if (id == R.id.nav_signout) {
+
+            signOutAccount();
 
         }
 
-        private void displayLocation() {
-            if(ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION)!=PackageManager.PERMISSION_GRANTED &&
-                    ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED)
-            {
-                return;
-            }
-            Common.mLastlocation = LocationServices.FusedLocationApi.getLastLocation(mgoogleApiClient);
-            if (Common.mLastlocation!=null)
-            {
-                if(location_switch.isChecked()){
-                    final double latitude = Common.mLastlocation.getLatitude();
-                    final double longitude = Common.mLastlocation.getLongitude();
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
 
-                    LatLng center  = new LatLng(latitude,longitude);
-                    LatLng northside = SphericalUtil.computeOffset(center,100000,0);
-                    LatLng southside = SphericalUtil.computeOffset(center,100000,180);
+    private void signOutAccount() {
+        FirebaseAuth.getInstance().signOut();
+        Intent intent = new Intent(AmbulanceHome.this, MainActivity.class);
+        finish();
+        startActivity(intent);
+    }
 
-                    LatLngBounds bounds = LatLngBounds.builder()
-                            .include(northside)
-                            .include(southside)
-                            .build();
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        displayLocation();
+        startLocationUpdates();
+    }
 
-                    places.setBoundsBias(bounds);
-                    places.setFilter(typeFilter);
+    @Override
+    public void onConnectionSuspended(int i) {
+    mgoogleApiClient.connect();
+    }
 
-                    geoFire.setLocation(FirebaseAuth.getInstance().getCurrentUser().getUid(), new GeoLocation(latitude, longitude)
-                            , new GeoFire.CompletionListener() {
-                                @Override
-                                public void onComplete(String key, DatabaseError error) {
-                                    if(mCurrent!=null)
-                                        mCurrent.remove();
-                                    mCurrent = mMap.addMarker(new MarkerOptions()
-                                                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                                                                .position(new LatLng(latitude,longitude))
-                                                                .title(FirebaseAuth.getInstance().getCurrentUser().getEmail() +"  Ambulance"));
-                                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude,longitude),18.0f));
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
-                                }
-                            });
-                }
-            }
-            else
-            {
-                Toast.makeText(this, "Cannot get Location!", Toast.LENGTH_SHORT).show();
-                Log.d("ERROR","Cannot get your Lcoation");
-            }
-        }
+    }
 
-        private void rotateMarker(final Marker mCurrent, final float i, GoogleMap mMap) {
-        final Handler handler = new Handler();
-        final long start = SystemClock.uptimeMillis();
-        final float startRotation = mCurrent.getRotation();
-        final long duration= 1500;
-
-            final Interpolator interpolator = new LinearInterpolator();
-
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    long elapsed =SystemClock.uptimeMillis() - start;
-                    float t =  interpolator.getInterpolation((float)elapsed/duration);
-                    float rot  = t* i+(1-t)*startRotation;
-                    mCurrent.setRotation(-rot > 180?rot/2:rot);
-                    if(t<1.0)
-                    {
-                        handler.postDelayed(this,16);
-                    }
-                }
-            });
-        }
-
-        private void startLocationUpdates() {
-            if(ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION)!=PackageManager.PERMISSION_GRANTED &&
-                    ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED)
-            {
-                return;
-            }
-            LocationServices.FusedLocationApi.requestLocationUpdates(mgoogleApiClient,mlocationRequest,this);
-
-        }
-
+    @Override
+    public void onLocationChanged(Location location) {
+        Common.mLastlocation = location;
+        displayLocation();
+    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -563,26 +629,4 @@ public class MapAmbulance extends FragmentActivity implements OnMapReadyCallback
         mMap.setBuildingsEnabled(false);
         mMap.getUiSettings().setZoomControlsEnabled(false);
     }
-
-        @Override
-        public void onConnected(@Nullable Bundle bundle) {
-            mgoogleApiClient.connect();
-            startLocationUpdates();
-        }
-
-        @Override
-        public void onConnectionSuspended(int i) {
-
-        }
-
-        @Override
-        public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-        }
-
-        @Override
-        public void onLocationChanged(Location location) {
-        Common.mLastlocation = location;
-        displayLocation();
-        }
-    }
+}

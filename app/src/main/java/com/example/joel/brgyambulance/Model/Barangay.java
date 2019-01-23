@@ -1,17 +1,16 @@
 package com.example.joel.brgyambulance.Model;
 
 public class Barangay {
-    private String email, password, name, phone;
+    private String email, password, name, platenumber;
 
     public Barangay() {
-
     }
 
-    public Barangay(String email, String password, String name, String phone) {
+    public Barangay(String email, String password, String name, String platenumber) {
         this.email = email;
         this.password = password;
         this.name = name;
-        this.phone = phone;
+        this.platenumber = platenumber;
     }
 
     public String getEmail() {
@@ -38,11 +37,11 @@ public class Barangay {
         this.name = name;
     }
 
-    public String getPhone() {
-        return phone;
+    public String getPlatenumber() {
+        return platenumber;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setPlatenumber(String platenumber) {
+        this.platenumber = platenumber;
     }
 }
