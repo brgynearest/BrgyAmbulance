@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">BrgyAmbulance</string>
     <string name="title_activity_map_ambulance">Map</string>
-    <string name="google_directions_api">AIzaSyC9F6pWVhKwRPzLoe1HBolcxBAWaMSKA6k</string>
+    <string name="google_directions_api">AIzaSyBAz36yCPfVJ6N8RCm8a5Ht5NqybPlC5e0</string>
     <string name="title_activity_brgy_tracking">Map</string>
-    <string name="title_activity_ambulance_home">AmbulanceHome</string>
+    <string name="title_activity_ambulance_home">Brgy. Ambulance</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Android Studio</string>

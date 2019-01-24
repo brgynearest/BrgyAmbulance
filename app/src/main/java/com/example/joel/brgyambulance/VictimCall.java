@@ -50,6 +50,7 @@ public class VictimCall extends AppCompatActivity {
     IFCMService mFCMService;
     double lat,lng;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,24 +97,31 @@ public class VictimCall extends AppCompatActivity {
     }
 
     private void declinerequest(String victimId) {
-        Token token = new Token(victimId);
-        Notification notification = new Notification("Declined","Brgy Ambulance has declined your request");
-        Sender sender = new Sender(notification,token.getToken());
-        mFCMService.sendMessage(sender)
-                .enqueue(new Callback<FCMResponse>() {
-                    @Override
-                    public void onResponse(Call<FCMResponse> call, Response<FCMResponse> response) {
-                        if(response.body().success==1)
-                        {
-                            Toast.makeText(VictimCall.this, "You Declined the Victims Request", Toast.LENGTH_SHORT).show();
-                            finish();
-                        }
-                    }
-                    @Override
-                    public void onFailure(Call<FCMResponse> call, Throwable t) {
 
-                    }
-                });
+        try {
+
+
+            Token token = new Token(victimId);
+            Notification notification = new Notification("Decline", "Brgy Ambulance has declined your request");
+            Sender sender = new Sender(token.getToken(), notification);
+            mFCMService.sendMessage(sender)
+                    .enqueue(new Callback<FCMResponse>() {
+                        @Override
+                        public void onResponse(Call<FCMResponse> call, Response<FCMResponse> response) {
+                            if (response.body().success == 1) {
+                                Toast.makeText(VictimCall.this, "You Declined the Victims Request", Toast.LENGTH_SHORT).show();
+                                finish();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<FCMResponse> call, Throwable t) {
+                        }
+                    });
+        }
+        catch (Exception e){
+            Toast.makeText(this, ""+e.getMessage()                                                                                                                                        , Toast.LENGTH_SHORT).show();
+        }
     }
 
 

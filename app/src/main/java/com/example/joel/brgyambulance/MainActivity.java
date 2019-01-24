@@ -32,6 +32,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.w3c.dom.Text;
+
 import java.util.Map;
 
 import dmax.dialog.SpotsDialog;
@@ -164,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
                                                         @Override
                                                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                                             Common.currentAmbulance = dataSnapshot.getValue(Barangay.class);
+
                                                         }
 
                                                     @Override
@@ -171,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
 
                                                     }
                                                 });
+
                                         startActivity(new Intent(MainActivity.this,AmbulanceHome.class));
                                         finish();
                                     }

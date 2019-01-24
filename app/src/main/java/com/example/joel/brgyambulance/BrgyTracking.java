@@ -204,8 +204,8 @@ public class BrgyTracking extends FragmentActivity implements OnMapReadyCallback
 
     private void sendArrivedNotification(String victimId) {
         Token token  = new Token(victimId);
-        Notification notification = new Notification("Arrvied",String.format("The Ambulance %s has arrived to rescue",Common.currentAmbulance.getName()));
-        Sender sender = new Sender(notification,token.getToken());
+        Notification notification = new Notification("Arrived",String.format("The Ambulance %s has arrived to rescue",Common.currentAmbulance.getName()));
+        Sender sender = new Sender(token.getToken(),notification);
 
         mFCMService.sendMessage(sender).enqueue(new Callback<FCMResponse>() {
             @Override
@@ -239,36 +239,38 @@ public class BrgyTracking extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void displaylocation() {
-        if(ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION)!=PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED)
-        {
-            return;
-        }
-        Common.mLastlocation = LocationServices.FusedLocationApi.getLastLocation(mgoogleApiClient);
-        if (Common.mLastlocation!=null)
-        {
+        try {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+            Common.mLastlocation = LocationServices.FusedLocationApi.getLastLocation(mgoogleApiClient);
+            if (Common.mLastlocation != null) {
 
                 final double latitude = Common.mLastlocation.getLatitude();
                 final double longitude = Common.mLastlocation.getLongitude();
 
-                if(ambulanceMarker!=null)
+                if (ambulanceMarker != null)
                     ambulanceMarker.remove();
                 ambulanceMarker = mMap.addMarker(new MarkerOptions()
-                                        .position(new LatLng(latitude,longitude))
-                                        .title("Your Ambulance")
-                                        .icon(BitmapDescriptorFactory.defaultMarker()));
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude,longitude),18.0f));
+                        .position(new LatLng(latitude, longitude))
+                        .title("Your Ambulance")
+                        .icon(BitmapDescriptorFactory.defaultMarker()));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 18.0f));
 
-                if(direction!=null) {
+                if (direction != null) {
                     direction.remove();
                 }
                 getDirection();
 
-        }
-        else
-        {
-            Toast.makeText(this, "Cannot get Location!", Toast.LENGTH_SHORT).show();
-            Log.d("ERROR","Cannot get your Lcoation");
+            } else {
+                Toast.makeText(this, "Cannot get Location!", Toast.LENGTH_SHORT).show();
+                Log.d("ERROR", "Cannot get your Lcoation");
+            }
+        }catch (Exception e){
+            Toast.makeText(this, "Exception:" +e.getMessage(), Toast.LENGTH_SHORT).show();
+            Log.d("LatlLng","Lat: " +victimlat );
+
         }
     }
 

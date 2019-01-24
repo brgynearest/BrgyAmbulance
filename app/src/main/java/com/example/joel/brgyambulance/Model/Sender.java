@@ -6,6 +6,11 @@ public class Sender {
     public String to;
 
     public Sender() {
+
+    }
+    public Sender( String to,Notification notification) {
+        this.notification = notification;
+        this.to = to;
     }
 
     public Notification getNotification() {
@@ -23,8 +28,5 @@ public class Sender {
     public void setTo(String to) {
         this.to = to;
     }
-    public Sender(Notification notification, String to) {
-        this.notification = notification;
-        this.to = to;
-    }
+
 }

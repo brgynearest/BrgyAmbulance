@@ -30,7 +30,7 @@
         android:layout_marginTop="70dp"
         app:cardElevation="10dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="50dp">
 
         <LinearLayout
             android:orientation="horizontal"
@@ -50,7 +50,7 @@
                 android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="10dp"
+                android:layout_margin="5dp"
                 android:layout_weight="5"/>
         </LinearLayout>
 

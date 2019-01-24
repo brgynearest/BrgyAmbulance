@@ -4,6 +4,14 @@ public class Notification {
     public String title;
     public String body;
 
+    public Notification() {
+    }
+
+    public Notification(String title, String body) {
+        this.title = title;
+        this.body = body;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -20,13 +28,7 @@ public class Notification {
         this.body = body;
     }
 
-    public Notification() {
-    }
 
-    public Notification(String title, String body) {
-        this.title = title;
-        this.body = body;
-    }
 
 
 }

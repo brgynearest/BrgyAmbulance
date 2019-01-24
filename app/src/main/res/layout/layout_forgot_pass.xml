@@ -22,16 +22,6 @@
             android:text=""
             android:textSize="20sp" />
 
-        <EditText
-
-            android:layout_marginTop="10dp"
-            android:id="@+id/edittext_password"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Password"
-            android:inputType="textPassword"
-            android:text=""
-            android:textSize="20sp" />
 
 
     </LinearLayout>

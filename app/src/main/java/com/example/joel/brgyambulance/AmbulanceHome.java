@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -13,6 +14,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -24,8 +26,12 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.animation.LinearInterpolator;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.joel.brgyambulance.Hospital.GetNearbyPlacesData;
 import com.example.joel.brgyambulance.Interaction.Common;
 import com.example.joel.brgyambulance.Model.Barangay;
 import com.example.joel.brgyambulance.Model.Token;
@@ -106,6 +112,7 @@ public class AmbulanceHome extends AppCompatActivity
     Marker mCurrent;
     MaterialAnimatedSwitch location_switch;
     SupportMapFragment mapFragment;
+
     private List<LatLng> polyLineList;
     private Marker ambulanceMarker;
     private float v;
@@ -113,7 +120,6 @@ public class AmbulanceHome extends AppCompatActivity
     private Handler handler;
     private LatLng startPosition,endPosition,currentPosition;
     private int index,next;
-
     private PlaceAutocompleteFragment places;
     AutocompleteFilter typeFilter;
     private String destination;
@@ -121,8 +127,15 @@ public class AmbulanceHome extends AppCompatActivity
     private Polyline blackPolyline,greyPolyline;
     private IGoogleAPI mService;
 
+    //for showing Hospitals
+    double latitude,longitude;
+    int PROXIMITY_RADIUS = 800;
+    Button btnFindHospitals;
+
     DatabaseReference availableRef,currentAmbulanceRef;
 
+    ImageView imgExpandable;
+    HospitalsBottomSheet mBottomSheet;
     Runnable drawPathRunnable = new Runnable() {
         @Override
         public void run() {
@@ -189,7 +202,24 @@ public class AmbulanceHome extends AppCompatActivity
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        imgExpandable=findViewById(R.id.imgExpandable);
+        mBottomSheet=HospitalsBottomSheet.newInstance("Nearest Hospitals");
+        imgExpandable.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mBottomSheet.show(getSupportFragmentManager(),mBottomSheet.getTag());
+            }
+        });
+        btnFindHospitals = findViewById(R.id.btnfindhospitals);
+        btnFindHospitals.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showHospitals();
+
+            }
+        });
+
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -217,13 +247,16 @@ public class AmbulanceHome extends AppCompatActivity
             public void onCheckedChanged(boolean sAvailable) {
                 try {
                     if (sAvailable) {
-
+                        btnFindHospitals.setBackgroundColor(R.color.cyan);
+                        btnFindHospitals.setEnabled(true);
                         FirebaseDatabase.getInstance().goOnline();
                         startLocationUpdates();
                         displayLocation();
                         Snackbar.make(mapFragment.getView(), "You are available", Snackbar.LENGTH_LONG).show();
-                    } else {
 
+                    } else {
+                        btnFindHospitals.setBackgroundColor(Color.GRAY);
+                        btnFindHospitals.setEnabled(false);
                         FirebaseDatabase.getInstance().goOffline();
                         stopLocationUpdates();
                         mCurrent.remove();
@@ -268,13 +301,44 @@ public class AmbulanceHome extends AppCompatActivity
         });
 
 
-
         ambulanceavalable = FirebaseDatabase.getInstance().getReference(Common.available_Ambulance);
         geoFire = new GeoFire(ambulanceavalable);
         setUpLocation();
 
         mService = Common.getIGoogleAPI();
         updateFirebaseToken();
+    }
+
+    private void showHospitals() {
+        Object dataTransfer[] = new Object[2];
+        GetNearbyPlacesData getNearbyPlacesData = new GetNearbyPlacesData();
+
+        mMap.clear();
+        String hospital = "hospital";
+        String url = getUrl(latitude, longitude, hospital);
+        dataTransfer[0] = mMap;
+        dataTransfer[1] = url;
+
+        getNearbyPlacesData.execute(dataTransfer);
+        Toast.makeText(AmbulanceHome.this, "Showing Nearby Hospitals", Toast.LENGTH_SHORT).show();
+        onLocationChanged(Common.mLastlocation);
+    }
+
+    private String getUrl(double latitude , double longitude , String nearbyPlace)
+    {
+
+        StringBuilder googlePlaceUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
+        googlePlaceUrl.append("location="+latitude+","+longitude);
+        googlePlaceUrl.append("&radius="+PROXIMITY_RADIUS);
+        googlePlaceUrl.append("&type="+nearbyPlace);
+        googlePlaceUrl.append("&sensor=true");
+        /*googlePlaceUrl.append("&key="+"AIzaSyBGAFPZoNG_tY6ULWF6c-8wHFEpeTQ3EbE");*/
+        /*googlePlaceUrl.append("&key="+"AIzaSyBAz36yCPfVJ6N8RCm8a5Ht5NqybPlC5e0");*/
+        /*googlePlaceUrl.append("&key="+"AIzaSyC7bEU4_EK-tfsg3LZHRff6SZ55OPQIBCw");*/
+        /*googlePlaceUrl.append("&key="+"AIzaSyBLEPBRfw7sMb73Mr88L91Jqh3tuE4mKsE");*/
+        googlePlaceUrl.append("&key="+"AIzaSyBZwMHN95o72R5355U-vL7WyhbjlRT-NJ8");
+        Log.d("NearbyHospitals", "url = "+googlePlaceUrl.toString());
+        return googlePlaceUrl.toString();
     }
 
     private void updateFirebaseToken() {
@@ -523,7 +587,7 @@ public class AmbulanceHome extends AppCompatActivity
                                 mCurrent = mMap.addMarker(new MarkerOptions()
                                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                                         .position(new LatLng(latitude,longitude))
-                                        .title(FirebaseAuth.getInstance().getCurrentUser().getDisplayName()+" Ambulance"));
+                                        .title("Your Ambulance"));
                                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude,longitude),18.0f));
 
                             }
@@ -532,7 +596,7 @@ public class AmbulanceHome extends AppCompatActivity
         }
         else
         {
-            Toast.makeText(this, "Cannot get Location!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Cannot get your Location!", Toast.LENGTH_SHORT).show();
             Log.d("ERROR","Cannot get your Lcoation");
         }
     }
@@ -546,8 +610,6 @@ public class AmbulanceHome extends AppCompatActivity
         LocationServices.FusedLocationApi.requestLocationUpdates(mgoogleApiClient,mlocationRequest,this);
 
     }
-
-
 
     @Override
     public void onBackPressed() {
@@ -583,7 +645,6 @@ public class AmbulanceHome extends AppCompatActivity
         } else if (id == R.id.nav_signout) {
 
             signOutAccount();
-
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -594,14 +655,16 @@ public class AmbulanceHome extends AppCompatActivity
     private void signOutAccount() {
         FirebaseAuth.getInstance().signOut();
         Intent intent = new Intent(AmbulanceHome.this, MainActivity.class);
-        finish();
         startActivity(intent);
+        finish();
     }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+
         displayLocation();
         startLocationUpdates();
+
     }
 
     @Override
@@ -616,8 +679,13 @@ public class AmbulanceHome extends AppCompatActivity
 
     @Override
     public void onLocationChanged(Location location) {
+
+
+
         Common.mLastlocation = location;
         displayLocation();
+        latitude = location.getLatitude();
+        longitude = location.getLongitude();
     }
 
     @Override
@@ -629,4 +697,6 @@ public class AmbulanceHome extends AppCompatActivity
         mMap.setBuildingsEnabled(false);
         mMap.getUiSettings().setZoomControlsEnabled(false);
     }
+
+
 }
