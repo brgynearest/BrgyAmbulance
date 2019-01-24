@@ -17,16 +17,16 @@ public class MyFirebaseMessaging extends FirebaseMessagingService {
     public void onMessageReceived(RemoteMessage remoteMessage) {
 
         if(remoteMessage.getData()!=null) {
-           /* LatLng victim_location = new Gson().fromJson(remoteMessage.getNotification().getBody(), LatLng.class);*/
-            Map<String,String> data = remoteMessage.getData();
-            String victim  = data.get("victim");
+            LatLng victim_location = new Gson().fromJson(remoteMessage.getNotification().getBody(), LatLng.class);
+            /*Map<String,String> data = remoteMessage.getData();
+            String victimId  = data.get("victimId");
             String lat = data.get("lat");
-            String lng = data.get("lng");
+            String lng = data.get("lng");*/
 
             Intent intent = new Intent(getBaseContext(), VictimCall.class);
-            intent.putExtra("lat", lat);
-            intent.putExtra("lng", lng);
-            intent.putExtra("victim",victim);
+            intent.putExtra("lat", victim_location.latitude);
+            intent.putExtra("lng", victim_location.longitude);
+            intent.putExtra("victim",remoteMessage.getNotification().getTitle());
             startActivity(intent);
        }
     }

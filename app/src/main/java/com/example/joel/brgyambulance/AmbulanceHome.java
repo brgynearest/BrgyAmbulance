@@ -26,8 +26,10 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.animation.LinearInterpolator;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -79,6 +81,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import retrofit2.Call;
@@ -132,8 +135,10 @@ public class AmbulanceHome extends AppCompatActivity
     int PROXIMITY_RADIUS = 800;
     Button btnFindHospitals;
 
+    public static ArrayAdapter<String> arrayAdapter;
+    public static ArrayList<String> listhospital;
     DatabaseReference availableRef,currentAmbulanceRef;
-    public static TextView bottomtexts;
+    public static ListView listhospitals;
     ImageView imgExpandable;
     HospitalsBottomSheet mBottomSheet;
     Runnable drawPathRunnable = new Runnable() {
@@ -201,6 +206,12 @@ public class AmbulanceHome extends AppCompatActivity
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
+
+        listhospitals = findViewById(R.id.listhospital);
+
+        listhospital = new ArrayList<String>();
+        arrayAdapter = new ArrayAdapter<String>
+                (this, android.R.layout.simple_list_item_1, listhospital);
 
         imgExpandable=findViewById(R.id.imgExpandable);
         mBottomSheet=HospitalsBottomSheet.newInstance("Nearest Hospitals");

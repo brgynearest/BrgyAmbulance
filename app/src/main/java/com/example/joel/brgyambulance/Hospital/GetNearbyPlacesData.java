@@ -2,6 +2,8 @@ package com.example.joel.brgyambulance.Hospital;
 
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.joel.brgyambulance.AmbulanceHome;
@@ -13,6 +15,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -21,6 +24,9 @@ public class GetNearbyPlacesData  extends AsyncTask<Object, String, String> {
     private String googlePlacesData;
     private GoogleMap mMap;
     String url;
+    public static ArrayList<String> listhospital;
+    public static ArrayAdapter<String> arrayAdapter;
+    public static ListView listhospitals;
 
     @Override
     protected String doInBackground(Object... objects){
@@ -63,13 +69,18 @@ public class GetNearbyPlacesData  extends AsyncTask<Object, String, String> {
             markerOptions.position(latLng);
             markerOptions.title(placeName + " : "+ vicinity);
             Log.d("PLACESS",""+placeName+","+vicinity);
-            markerOptions.icon(BitmapDescriptorFactory.defaultMarker());
+            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_hospital));
 
             mMap.addMarker(markerOptions);
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
             Log.d("Blankss",placeName+","+vicinity);
-            AmbulanceHome.bottomtexts.setText(placeName+","+vicinity);
+           /* listhospital = AmbulanceHome.listhospital;
+            listhospital.add(placeName+","+vicinity);
+            arrayAdapter = AmbulanceHome.arrayAdapter;
+            arrayAdapter.notifyDataSetChanged();
+            listhospitals = AmbulanceHome.listhospitals;
+            listhospitals.setAdapter(AmbulanceHome.arrayAdapter);*/
 
         }
     }

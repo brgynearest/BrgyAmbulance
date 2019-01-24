@@ -62,7 +62,7 @@ public class VictimCall extends AppCompatActivity {
         btndecline.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(TextUtils.isEmpty(victimId))
+                if(!TextUtils.isEmpty(victimId))
                     declinerequest(victimId);
             }
         });
@@ -99,10 +99,8 @@ public class VictimCall extends AppCompatActivity {
     private void declinerequest(String victimId) {
 
         try {
-
-
             Token token = new Token(victimId);
-            Notification notification = new Notification("Decline", "Brgy Ambulance has declined your request");
+            Notification notification = new Notification("Declined", "Brgy Ambulance has declined your request");
             Sender sender = new Sender(token.getToken(), notification);
             mFCMService.sendMessage(sender)
                     .enqueue(new Callback<FCMResponse>() {
