@@ -133,7 +133,7 @@ public class AmbulanceHome extends AppCompatActivity
     Button btnFindHospitals;
 
     DatabaseReference availableRef,currentAmbulanceRef;
-
+    public static TextView bottomtexts;
     ImageView imgExpandable;
     HospitalsBottomSheet mBottomSheet;
     Runnable drawPathRunnable = new Runnable() {
@@ -309,6 +309,7 @@ public class AmbulanceHome extends AppCompatActivity
         updateFirebaseToken();
     }
 
+
     private void showHospitals() {
         Object dataTransfer[] = new Object[2];
         GetNearbyPlacesData getNearbyPlacesData = new GetNearbyPlacesData();
@@ -322,6 +323,8 @@ public class AmbulanceHome extends AppCompatActivity
         getNearbyPlacesData.execute(dataTransfer);
         Toast.makeText(AmbulanceHome.this, "Showing Nearby Hospitals", Toast.LENGTH_SHORT).show();
         onLocationChanged(Common.mLastlocation);
+
+
     }
 
     private String getUrl(double latitude , double longitude , String nearbyPlace)

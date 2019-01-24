@@ -2,7 +2,9 @@ package com.example.joel.brgyambulance.Hospital;
 
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.TextView;
 
+import com.example.joel.brgyambulance.AmbulanceHome;
 import com.example.joel.brgyambulance.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -67,6 +69,8 @@ public class GetNearbyPlacesData  extends AsyncTask<Object, String, String> {
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
             Log.d("Blankss",placeName+","+vicinity);
+            AmbulanceHome.bottomtexts.setText(placeName+","+vicinity);
+
         }
     }
 
