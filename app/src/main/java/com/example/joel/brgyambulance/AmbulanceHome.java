@@ -100,6 +100,7 @@ public class AmbulanceHome extends AppCompatActivity
 
     private static final String TAG = "AmbulanceHome";
 
+    Snackbar snackbar;
     private GoogleMap mMap;
     private static final int MY_PERMISSION_REQUEST_CODE = 7000;
     private static final int PLAY_SERVICES_RES_REQUEST = 7001;
@@ -137,7 +138,6 @@ public class AmbulanceHome extends AppCompatActivity
     double latitude,longitude;
     int PROXIMITY_RADIUS = 800;
     Button btnFindHospitals;
-
     public static ArrayAdapter<String> arrayAdapter;
     public static ArrayList<String> listhospital;
     DatabaseReference availableRef,currentAmbulanceRef;
@@ -277,7 +277,8 @@ public class AmbulanceHome extends AppCompatActivity
                         mCurrent.remove();
                         mMap.clear();
                         handler.removeCallbacks(drawPathRunnable);
-                        Snackbar.make(mapFragment.getView(), "You are not available", Snackbar.LENGTH_LONG).show();
+
+                        snackbar.make(mapFragment.getView(), "You are not available, Enable to Rescue and Find Hospital", 5000).show();
                     }
                 }catch (Exception ex){
                     Log.d(TAG,"ToggleSwitch Error:" + ex.getMessage());
