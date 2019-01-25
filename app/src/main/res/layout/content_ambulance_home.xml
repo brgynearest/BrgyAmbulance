@@ -45,17 +45,15 @@
                 android:layout_height="wrap_content"
                 app:icon_release="@drawable/ic_location_off"
                 app:icon_press="@drawable/ic_location_on"
-                app:base_release_color="@android:color/holo_orange_light"
+                app:base_release_color="@android:color/holo_red_light"
                 app:base_press_color="@android:color/holo_green_light"
                 app:ball_press_color="@android:color/white"
-                app:ball_release_color="@android:color/holo_red_light"  />
+                app:ball_release_color="@android:color/white"  />
 
             <Button
                 android:id="@+id/btnfindhospitals"
                 android:layout_weight="8"
-                android:text="Find Hospitals"
-                android:textStyle="bold"
-                android:textSize="20dp"
+                android:text="Find Hospital"
                 android:enabled="false"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

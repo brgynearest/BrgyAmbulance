@@ -2,6 +2,7 @@ package com.example.joel.brgyambulance;
 
 import android.Manifest;
 import android.animation.ValueAnimator;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -15,6 +16,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -84,6 +86,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import io.paperdb.Paper;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -258,7 +261,7 @@ public class AmbulanceHome extends AppCompatActivity
             public void onCheckedChanged(boolean sAvailable) {
                 try {
                     if (sAvailable) {
-                        btnFindHospitals.setBackgroundColor(R.color.cyan);
+                        btnFindHospitals.setBackgroundResource(R.drawable.button_sign);
                         btnFindHospitals.setEnabled(true);
                         FirebaseDatabase.getInstance().goOnline();
                         startLocationUpdates();
@@ -266,7 +269,8 @@ public class AmbulanceHome extends AppCompatActivity
                         Snackbar.make(mapFragment.getView(), "You are available", Snackbar.LENGTH_LONG).show();
 
                     } else {
-                        btnFindHospitals.setBackgroundColor(Color.GRAY);
+                        handler = new Handler();
+                        btnFindHospitals.setBackgroundResource(R.color.grey);
                         btnFindHospitals.setEnabled(false);
                         FirebaseDatabase.getInstance().goOffline();
                         stopLocationUpdates();
@@ -631,7 +635,24 @@ public class AmbulanceHome extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            AlertDialog.Builder alerdialog = new AlertDialog.Builder(this);
+            alerdialog
+                    .setMessage("Are you sure you want to exit?")
+                    .setCancelable(false)
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            finish();
+                        }
+
+                    })
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+            alerdialog.show();
         }
     }
 
@@ -667,10 +688,7 @@ public class AmbulanceHome extends AppCompatActivity
     }
 
     private void signOutAccount() {
-        FirebaseAuth.getInstance().signOut();
-        Intent intent = new Intent(AmbulanceHome.this, MainActivity.class);
-        startActivity(intent);
-        finish();
+        backhome();
     }
 
     @Override
@@ -680,6 +698,18 @@ public class AmbulanceHome extends AppCompatActivity
         startLocationUpdates();
 
     }
+    private void backhome() {
+        Paper.init(this);
+        Paper.book().destroy();
+
+        FirebaseAuth.getInstance().signOut();
+
+
+        startActivity(new Intent(AmbulanceHome.this,MainActivity.class));
+        finish();
+
+    }
+
 
     @Override
     public void onConnectionSuspended(int i) {

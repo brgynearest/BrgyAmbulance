@@ -4,6 +4,12 @@
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#E77EA4</color>
     <color name="cyan">#03A9F4</color>
-    <color name="grey">#C0C0C0</color>
+    <color name="grey">#616161</color>
+    <color name="black">#000000  </color>
+
+    <color name="forgot_color">#FF03A9F4</color>
+    <color name="rippleEffect">#f816a463</color>
+    <color name="bluebutton">#1fbad6</color>
+    <color name="register">#c5cae9</color>
 
 </resources>

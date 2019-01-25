@@ -5,7 +5,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -32,11 +31,14 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import dmax.dialog.SpotsDialog;
+
 import org.w3c.dom.Text;
 
 import java.util.Map;
 
 import dmax.dialog.SpotsDialog;
+import io.paperdb.Paper;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -52,6 +54,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Paper.init(this);
+        String user = Paper.book().read(Common.user_field);
+        String pwd = Paper.book().read(Common.pwd_field);
         auth = FirebaseAuth.getInstance();
         db = FirebaseDatabase.getInstance();
         ambulance = db.getReference(Common.barangay_ambulance);
@@ -81,10 +86,18 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        if(user!=null && pwd !=null){
+
+            if(!TextUtils.isEmpty(user) && !TextUtils.isEmpty(pwd) ){
+
+                autologin(user,pwd);
+            }
+        }
     }
 
     private void showDialogForgotPwd() {
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
+        android.support.v7.app.AlertDialog.Builder alertDialog = new android.support.v7.app.AlertDialog.Builder(MainActivity.this);
         alertDialog.setTitle("FORGOT PASSWORD");
         alertDialog.setMessage("Please enter your email address");
 
@@ -123,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showLoginDialog() {
-        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        android.support.v7.app.AlertDialog.Builder dialog = new android.support.v7.app.AlertDialog.Builder(this);
         dialog.setTitle("SIGN IN");
         dialog.setMessage("Please use email to Sign in");
 
@@ -154,11 +167,18 @@ public class MainActivity extends AppCompatActivity {
                             Snackbar.make(rootLayout, "Password too short!", Snackbar.LENGTH_SHORT).show();
                             return;
                         }
-                        Toast.makeText(MainActivity.this, "Loading...", Toast.LENGTH_SHORT).show();
+
+                        final android.app.AlertDialog alertDialog = new SpotsDialog.Builder().setContext(MainActivity.this).build();
+                        alertDialog.setMessage("Logging in...");
+                        alertDialog.show();
+
                         auth.signInWithEmailAndPassword(edittext_email.getText().toString(),edittext_password.getText().toString())
                                 .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                                     @Override
                                     public void onSuccess(AuthResult authResult) {
+                                        alertDialog.dismiss();
+                                        Paper.book().write(Common.user_field,edittext_email.getText().toString());
+                                        Paper.book().write(Common.pwd_field,edittext_password.getText().toString());
 
                                         FirebaseDatabase.getInstance().getReference(Common.barangay_ambulance)
                                                 .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
@@ -168,6 +188,7 @@ public class MainActivity extends AppCompatActivity {
                                                             Common.currentAmbulance = dataSnapshot.getValue(Barangay.class);
 
                                                         }
+
 
                                                     @Override
                                                     public void onCancelled(@NonNull DatabaseError databaseError) {
@@ -182,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
                                 .addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception e) {
-                                        Snackbar.make(rootLayout,"Failed"+e.getMessage(),Snackbar.LENGTH_SHORT).show();
+                                        Snackbar.make(rootLayout,""+e.getMessage(),Snackbar.LENGTH_SHORT).show();
                                         signinbtn.setEnabled(true);
                                     }
                                 });
@@ -199,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showRegisterDialog() {
-        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        android.support.v7.app.AlertDialog.Builder dialog = new android.support.v7.app.AlertDialog.Builder(this);
         dialog.setTitle("REGISTER");
         dialog.setMessage("Please use email to register");
 
@@ -281,6 +302,32 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         dialog.show();
+
+    }
+    private void autologin(String user, String pwd) {
+        final android.app.AlertDialog alertDialog = new SpotsDialog.Builder().setContext(MainActivity.this).build();
+        alertDialog.setMessage("Logging in...");
+        alertDialog.show();
+
+
+        auth.signInWithEmailAndPassword(user,pwd)
+                .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                    @Override
+                    public void onSuccess(AuthResult authResult) {
+                        alertDialog.dismiss();
+                        startActivity(new Intent(MainActivity.this,AmbulanceHome.class));
+                        finish();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        alertDialog.dismiss();
+                        signinbtn.setEnabled(true);
+                        Snackbar.make(rootLayout,""+e.getMessage(),Snackbar.LENGTH_SHORT).show();
+
+                    }
+                });
 
     }
 }

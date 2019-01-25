@@ -21,6 +21,8 @@ public class Common  {
 
     public static Barangay currentAmbulance;
     public static Location mLastlocation=null;
+    public static final String user_field = "email";
+    public static final String pwd_field = "password";
 
     public static final String baseURL ="https://maps.googleapis.com";
     public static final String fcmURL ="https://fcm.googleapis.com";
