@@ -75,12 +75,7 @@ public class GetNearbyPlacesData  extends AsyncTask<Object, String, String> {
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
             Log.d("Blankss",placeName+","+vicinity);
-           /* listhospital = AmbulanceHome.listhospital;
-            listhospital.add(placeName+","+vicinity);
-            arrayAdapter = AmbulanceHome.arrayAdapter;
-            arrayAdapter.notifyDataSetChanged();
-            listhospitals = AmbulanceHome.listhospitals;
-            listhospitals.setAdapter(AmbulanceHome.arrayAdapter);*/
+
 
         }
     }

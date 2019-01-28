@@ -49,5 +49,6 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
     implementation 'com.google.maps.android:android-maps-utils:0.5+'
     implementation 'com.rengwuxian.materialedittext:library:2.1.4'
+    implementation 'io.paperdb:paperdb:1.1'
 }
 apply plugin: 'com.google.gms.google-services'

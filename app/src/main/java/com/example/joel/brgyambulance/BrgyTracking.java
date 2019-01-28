@@ -76,7 +76,7 @@ public class BrgyTracking extends FragmentActivity implements OnMapReadyCallback
     , LocationListener {
 
     private GoogleMap mMap;
-    private static final int MY_PERMISSION_REQUEST_CODE = 7000;
+
     private static final int PLAY_SERVICES_RES_REQUEST = 7001;
 
     private LocationRequest mlocationRequest;
@@ -258,9 +258,8 @@ public class BrgyTracking extends FragmentActivity implements OnMapReadyCallback
                         .icon(BitmapDescriptorFactory.defaultMarker()));
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 18.0f));
 
-                if (direction != null) {
+                if (direction != null)
                     direction.remove();
-                }
                 getDirection();
 
             } else {
@@ -274,7 +273,7 @@ public class BrgyTracking extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void getDirection() {
+    private void  getDirection() {
         LatLng currentPosition = new LatLng(Common.mLastlocation.getLatitude(),Common.mLastlocation.getLongitude());
         String requestApi = null;
         try {
@@ -284,7 +283,7 @@ public class BrgyTracking extends FragmentActivity implements OnMapReadyCallback
                     "origin="+currentPosition.latitude+","+currentPosition.longitude+"&"+
                     "destination="+victimlat+","+victimlng+"&"+
                     "key="+getResources().getString(R.string.google_directions_api);
-            Log.d("POWER",requestApi);
+            Log.d("BRGYTRACKING",requestApi);
             mService.getPath(requestApi)
                     .enqueue(new Callback<String>() {
                         @Override
@@ -326,7 +325,7 @@ public class BrgyTracking extends FragmentActivity implements OnMapReadyCallback
         displaylocation();
     }
 
-    private class ParserTask extends AsyncTask<String, Integer,List<List<HashMap<String,String>>>>
+    private class ParserTask extends AsyncTask<String,Integer,List<List<HashMap<String,String>>>>
     {
 
         ProgressDialog mDialog = new ProgressDialog(BrgyTracking.this);
