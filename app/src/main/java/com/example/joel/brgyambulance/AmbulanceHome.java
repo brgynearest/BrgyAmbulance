@@ -37,7 +37,11 @@ import android.widget.Toast;
 import com.example.joel.brgyambulance.Hospital.GetNearbyPlacesData;
 import com.example.joel.brgyambulance.Interaction.Common;
 import com.example.joel.brgyambulance.Model.Barangay;
+import com.example.joel.brgyambulance.Model.FCMResponse;
+import com.example.joel.brgyambulance.Model.Notification;
+import com.example.joel.brgyambulance.Model.Sender;
 import com.example.joel.brgyambulance.Model.Token;
+import com.example.joel.brgyambulance.Remote.IFCMService;
 import com.example.joel.brgyambulance.Remote.IGoogleAPI;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
@@ -78,6 +82,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.gson.Gson;
 import com.google.maps.android.SphericalUtil;
 
 import org.json.JSONArray;
@@ -136,13 +141,14 @@ public class AmbulanceHome extends AppCompatActivity
     private PolylineOptions polylineOptions,blackpolylineOptions;
     private Polyline blackPolyline,greyPolyline;
     private IGoogleAPI mService;
+    private IFCMService mfcmService;
 
     boolean isHospitalFound=false;
     String hospitalId="";
     int radius=1;
     int distance=1;
      private static final int LIMIT =3;
-
+    DatabaseReference hospitalAvailable;
     //for showing Hospitals
     double latitude,longitude;
     int PROXIMITY_RADIUS = 800;
@@ -232,10 +238,14 @@ public class AmbulanceHome extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 /*showHospitals();*/
+                if(!isHospitalFound)
+                    requestHospital(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                else
+                    sendRequestToHospital(hospitalId);
 
-                requestHospital(FirebaseAuth.getInstance().getCurrentUser().getUid());
             }
         });
+
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -325,8 +335,47 @@ public class AmbulanceHome extends AppCompatActivity
         geoFire = new GeoFire(ambulanceavalable);
         setUpLocation();
 
+        mfcmService = Common.getFCMService();
+
         mService = Common.getIGoogleAPI();
         updateFirebaseToken();
+    }
+
+    private void sendRequestToHospital(String hospitalId) {
+        DatabaseReference tokens = FirebaseDatabase.getInstance().getReference(Common.token);
+        tokens.orderByKey().equalTo(hospitalId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        for(DataSnapshot postsnapshot:dataSnapshot.getChildren())
+                        {
+                            Token token = postsnapshot.getValue(Token.class);
+                            String jsonlatlang = new Gson().toJson(new LatLng(Common.mLastlocation.getLatitude(),Common.mLastlocation.getLongitude()));
+                            Notification notify = new Notification("POWERTHESIS",jsonlatlang);
+                            Sender sender = new Sender(token.getToken(),notify);
+                            mfcmService.sendMessage(sender)
+                                    .enqueue(new Callback<FCMResponse>() {
+                                        @Override
+                                        public void onResponse(Call<FCMResponse> call, Response<FCMResponse> response) {
+                                            if(response.body().success ==1)
+                                                Toast.makeText(AmbulanceHome.this, "Request Sent", Toast.LENGTH_SHORT).show();
+                                            else
+                                                Toast.makeText(AmbulanceHome.this, "Request not Sent!", Toast.LENGTH_SHORT).show();
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<FCMResponse> call, Throwable t) {
+                                            Log.e("POWER ERROR",t.getMessage());
+                                        }
+                                    });
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
     }
 
     private void requestHospital(String uid) {
@@ -355,6 +404,7 @@ public class AmbulanceHome extends AppCompatActivity
     }
 
     private void findHospital() {
+        loadAllAvailableHospitals();
         DatabaseReference hospitals = FirebaseDatabase.getInstance().getReference(Common.available_Hospitals);
         GeoFire gfHospitals = new GeoFire(hospitals);
         GeoQuery geoQuery = gfHospitals.queryAtLocation(new GeoLocation(Common.mLastlocation.getLatitude(),Common.mLastlocation.getLongitude()),radius);
@@ -652,6 +702,19 @@ public class AmbulanceHome extends AppCompatActivity
         mLastlocation = LocationServices.FusedLocationApi.getLastLocation(mgoogleApiClient);
         if (mLastlocation!=null)
         {
+            hospitalAvailable = FirebaseDatabase.getInstance().getReference(Common.available_Hospitals);
+            hospitalAvailable.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    loadAllAvailableHospitals();
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+
             if(location_switch.isChecked()){
                 final double latitude = mLastlocation.getLatitude();
                 final double longitude = mLastlocation.getLongitude();
@@ -681,7 +744,7 @@ public class AmbulanceHome extends AppCompatActivity
 
                             }
                         });
-                loadAllAvailableHospitals();
+
             }
         }
         else
@@ -691,7 +754,13 @@ public class AmbulanceHome extends AppCompatActivity
         }
     }
 
-    private void loadAllAvailableHospitals() {
+        private void loadAllAvailableHospitals() {
+
+        mMap.clear();
+        mMap.addMarker(new MarkerOptions().position(new LatLng(Common.mLastlocation.getLatitude(),Common.mLastlocation.getLongitude()))
+                    .title("Your Ambulance")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+
         DatabaseReference hospitalLocation = FirebaseDatabase.getInstance().getReference(Common.available_Hospitals);
         GeoFire gf = new GeoFire(hospitalLocation);
         GeoQuery geoQuery = gf.queryAtLocation(new GeoLocation(Common.mLastlocation.getLatitude(),Common.mLastlocation.getLongitude()),distance);
@@ -796,8 +865,6 @@ public class AmbulanceHome extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_trip_history) {
-            // Handle the camera action
-        } else if (id == R.id.nav_trip_history) {
 
         } else if (id == R.id.nav_help) {
 
