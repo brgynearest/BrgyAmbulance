@@ -3,6 +3,7 @@ package com.example.joel.brgyambulance;
 import android.Manifest;
 import android.animation.ValueAnimator;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -14,7 +15,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.animation.LinearInterpolator;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.joel.brgyambulance.Helper.DirectionJSONParser;
@@ -96,7 +99,7 @@ public class BrgyTracking extends FragmentActivity implements OnMapReadyCallback
     IFCMService mFCMService;
 
     GeoFire geoFire;
-
+    Button btnback;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,6 +107,14 @@ public class BrgyTracking extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        btnback=findViewById(R.id.btnback);
+        btnback.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+               startActivity(new Intent(BrgyTracking.this,AmbulanceHome.class));
+            }
+        });
 
         if(getIntent()!=null)
         {
@@ -204,7 +215,7 @@ public class BrgyTracking extends FragmentActivity implements OnMapReadyCallback
 
     private void sendArrivedNotification(String victimId) {
         Token token  = new Token(victimId);
-        Notification notification = new Notification("Arrived",String.format("The Ambulance %s has arrived to rescue",Common.currentAmbulance.getName()));
+        Notification notification = new Notification("Arrived",String.format("The Ambulance has arrived to rescue"));
         Sender sender = new Sender(token.getToken(),notification);
 
         mFCMService.sendMessage(sender).enqueue(new Callback<FCMResponse>() {
@@ -221,6 +232,9 @@ public class BrgyTracking extends FragmentActivity implements OnMapReadyCallback
 
             }
         });
+
+
+      /*  showAccidentsInstances();*/
     }
 
     @Override
@@ -260,7 +274,7 @@ public class BrgyTracking extends FragmentActivity implements OnMapReadyCallback
 
                 if (direction != null)
                     direction.remove();
-                getDirection();
+               /* getDirection();*/
 
             } else {
                 Toast.makeText(this, "Cannot get Location!", Toast.LENGTH_SHORT).show();
@@ -275,7 +289,7 @@ public class BrgyTracking extends FragmentActivity implements OnMapReadyCallback
 
     private void  getDirection() {
         LatLng currentPosition = new LatLng(Common.mLastlocation.getLatitude(),Common.mLastlocation.getLongitude());
-        String requestApi = null;
+       /* String requestApi = null;
         try {
             requestApi = "https://maps.googleapis.com/maps/api/directions/json?"+
                     "mode=driving&"+
@@ -306,7 +320,7 @@ public class BrgyTracking extends FragmentActivity implements OnMapReadyCallback
         catch (Exception e){
             e.printStackTrace();
 
-        }
+        }*/
     }
 
     @Override

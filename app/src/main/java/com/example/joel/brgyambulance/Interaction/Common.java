@@ -24,6 +24,7 @@ public class Common  {
 
     public static Barangay currentAmbulance;
     public static Location mLastlocation=null;
+    public static final String message="";
     public static final String user_field = "email";
     public static final String pwd_field = "password";
 

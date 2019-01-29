@@ -10,4 +10,12 @@
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
+    <string-array name="victim_case">
+        <item>Cardiac Arrest</item>
+        <item>Stroke</item>
+        <item>Collapses/Fainting</item>
+        <item>Uncontrolled Bleeding</item>
+        <item>Poisoned</item>
+        <item>Broken Bone</item>
+    </string-array>
 </resources>

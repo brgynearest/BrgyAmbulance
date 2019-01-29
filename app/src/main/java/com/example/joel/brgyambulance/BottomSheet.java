@@ -7,13 +7,19 @@ import android.support.design.widget.BottomSheetDialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
 
-public class HospitalsBottomSheet extends BottomSheetDialogFragment {
+import java.util.ArrayList;
+
+public class BottomSheet extends BottomSheetDialogFragment {
     String mTag;
 
-    public static HospitalsBottomSheet newInstance(String tag)
+    public static BottomSheet newInstance(String tag)
     {
-        HospitalsBottomSheet f=new HospitalsBottomSheet();
+        BottomSheet f=new BottomSheet();
         Bundle args=new Bundle();
         args.putString("TAG",tag);
         f.setArguments(args);
@@ -24,13 +30,13 @@ public class HospitalsBottomSheet extends BottomSheetDialogFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mTag=getArguments().getString("TAG");
+
     }
 
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-
         View view=inflater.inflate(R.layout.bottom_sheet,container,false);
         return view;
     }

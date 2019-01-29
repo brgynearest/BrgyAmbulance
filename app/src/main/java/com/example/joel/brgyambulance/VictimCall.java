@@ -20,21 +20,9 @@ import com.example.joel.brgyambulance.Model.Sender;
 import com.example.joel.brgyambulance.Model.Token;
 import com.example.joel.brgyambulance.Remote.IFCMService;
 import com.example.joel.brgyambulance.Remote.IGoogleAPI;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.JointType;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.gms.maps.model.SquareCap;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -155,9 +143,7 @@ public class VictimCall extends AppCompatActivity {
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
-
                         }
-
                         @Override
                         public void onFailure(Call<String> call, Throwable t) {
                             Toast.makeText(VictimCall.this, ""+t.getMessage(), Toast.LENGTH_SHORT).show();

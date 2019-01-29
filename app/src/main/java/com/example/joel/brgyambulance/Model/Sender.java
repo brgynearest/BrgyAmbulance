@@ -20,11 +20,9 @@ public class Sender {
     public void setNotification(Notification notification) {
         this.notification = notification;
     }
-
     public String getTo() {
         return to;
     }
-
     public void setTo(String to) {
         this.to = to;
     }

@@ -7,15 +7,12 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
@@ -28,8 +25,10 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.animation.LinearInterpolator;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -66,7 +65,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.CustomCap;
 import com.google.android.gms.maps.model.JointType;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -89,6 +87,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -153,12 +152,11 @@ public class AmbulanceHome extends AppCompatActivity
     double latitude,longitude;
     int PROXIMITY_RADIUS = 800;
     Button btnFindHospitals;
-    public static ArrayAdapter<String> arrayAdapter;
-    public static ArrayList<String> listhospital;
     DatabaseReference availableRef,currentAmbulanceRef;
-    public static ListView listhospitals;
     ImageView imgExpandable;
-    HospitalsBottomSheet mBottomSheet;
+    BottomSheet mBottomSheet;
+    ListView listView;
+
     Runnable drawPathRunnable = new Runnable() {
         @Override
         public void run() {
@@ -225,19 +223,12 @@ public class AmbulanceHome extends AppCompatActivity
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        imgExpandable=findViewById(R.id.imgExpandable);
-        mBottomSheet=HospitalsBottomSheet.newInstance("Nearest Hospitals");
-        imgExpandable.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mBottomSheet.show(getSupportFragmentManager(),mBottomSheet.getTag());
-            }
-        });
+        mBottomSheet= BottomSheet.newInstance("Victim Case");
         btnFindHospitals = findViewById(R.id.btnfindhospitals);
         btnFindHospitals.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                /*showHospitals();*/
+
                 if(!isHospitalFound)
                     requestHospital(FirebaseAuth.getInstance().getCurrentUser().getUid());
                 else
@@ -280,18 +271,27 @@ public class AmbulanceHome extends AppCompatActivity
                         FirebaseDatabase.getInstance().goOnline();
                         startLocationUpdates();
                         displayLocation();
+                        hospitalAvailable = FirebaseDatabase.getInstance().getReference(Common.available_Hospitals);
+                        hospitalAvailable.addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                loadAllAvailableHospitals();
+                            }
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+                            }
+                        });
                         Snackbar.make(mapFragment.getView(), "You are available", Snackbar.LENGTH_LONG).show();
 
                     } else {
+                        mMap.clear();
                         handler = new Handler();
-                        btnFindHospitals.setBackgroundResource(R.color.grey);
-                        btnFindHospitals.setEnabled(false);
+                        /*btnFindHospitals.setBackgroundResource(R.color.grey);
+                        btnFindHospitals.setEnabled(false);*/
                         FirebaseDatabase.getInstance().goOffline();
                         stopLocationUpdates();
                         mCurrent.remove();
-                        mMap.clear();
                         handler.removeCallbacks(drawPathRunnable);
-
                         snackbar.make(mapFragment.getView(), "You are not available, Enable to Rescue and Find Hospital", 5000).show();
                     }
                 }catch (Exception ex){
@@ -330,7 +330,6 @@ public class AmbulanceHome extends AppCompatActivity
             }
         });
 
-
         ambulanceavalable = FirebaseDatabase.getInstance().getReference(Common.available_Ambulance);
         geoFire = new GeoFire(ambulanceavalable);
         setUpLocation();
@@ -339,6 +338,14 @@ public class AmbulanceHome extends AppCompatActivity
 
         mService = Common.getIGoogleAPI();
         updateFirebaseToken();
+
+        /*listView = findViewById(R.id.samplelist);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+            }
+        });*/
     }
 
     private void sendRequestToHospital(String hospitalId) {
@@ -351,7 +358,8 @@ public class AmbulanceHome extends AppCompatActivity
                         {
                             Token token = postsnapshot.getValue(Token.class);
                             String jsonlatlang = new Gson().toJson(new LatLng(Common.mLastlocation.getLatitude(),Common.mLastlocation.getLongitude()));
-                            Notification notify = new Notification("POWERTHESIS",jsonlatlang);
+                            String ambulanceToken = FirebaseInstanceId.getInstance().getToken();
+                            Notification notify = new Notification(ambulanceToken,jsonlatlang);
                             Sender sender = new Sender(token.getToken(),notify);
                             mfcmService.sendMessage(sender)
                                     .enqueue(new Callback<FCMResponse>() {
@@ -702,18 +710,7 @@ public class AmbulanceHome extends AppCompatActivity
         mLastlocation = LocationServices.FusedLocationApi.getLastLocation(mgoogleApiClient);
         if (mLastlocation!=null)
         {
-            hospitalAvailable = FirebaseDatabase.getInstance().getReference(Common.available_Hospitals);
-            hospitalAvailable.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    loadAllAvailableHospitals();
-                }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                }
-            });
 
             if(location_switch.isChecked()){
                 final double latitude = mLastlocation.getLatitude();
@@ -755,7 +752,6 @@ public class AmbulanceHome extends AppCompatActivity
     }
 
         private void loadAllAvailableHospitals() {
-
         mMap.clear();
         mMap.addMarker(new MarkerOptions().position(new LatLng(Common.mLastlocation.getLatitude(),Common.mLastlocation.getLongitude()))
                     .title("Your Ambulance")
@@ -773,7 +769,6 @@ public class AmbulanceHome extends AppCompatActivity
                         .addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                Barangay brgy = dataSnapshot.getValue(Barangay.class);
                                 mMap.addMarker(new MarkerOptions()
                                         .position(new LatLng(location.latitude,location.longitude))
                                         .flat(true)
@@ -782,20 +777,15 @@ public class AmbulanceHome extends AppCompatActivity
                             }
                             @Override
                             public void onCancelled(@NonNull DatabaseError databaseError) {
-
                             }
                         });
 
             }
-
             @Override
             public void onKeyExited(String key) {
-
             }
-
             @Override
             public void onKeyMoved(String key, GeoLocation location) {
-
             }
 
             @Override
