@@ -2,6 +2,8 @@ package com.example.joel.brgyambulance;
 
 import android.Manifest;
 import android.animation.ValueAnimator;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -99,12 +101,23 @@ import retrofit2.Response;
 
 import static com.example.joel.brgyambulance.Interaction.Common.mLastlocation;
 
+
+
 public class AmbulanceHome extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         OnMapReadyCallback
         ,GoogleApiClient.OnConnectionFailedListener
         ,GoogleApiClient.ConnectionCallbacks
         ,LocationListener {
+    private BroadcastReceiver mCancelReciever = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            btnFindHospitals.setText("FIND HOSPITAL");
+            hospitalId="";
+            isHospitalFound= false;
+
+        }
+    };
 
     private static final String TAG = "AmbulanceHome";
 
@@ -146,7 +159,7 @@ public class AmbulanceHome extends AppCompatActivity
     String hospitalId="";
     int radius=1;
     int distance=1;
-     private static final int LIMIT =3;
+    private static final int LIMIT =3;
     DatabaseReference hospitalAvailable;
     //for showing Hospitals
     double latitude,longitude;
@@ -415,7 +428,7 @@ public class AmbulanceHome extends AppCompatActivity
         loadAllAvailableHospitals();
         DatabaseReference hospitals = FirebaseDatabase.getInstance().getReference(Common.available_Hospitals);
         GeoFire gfHospitals = new GeoFire(hospitals);
-        GeoQuery geoQuery = gfHospitals.queryAtLocation(new GeoLocation(Common.mLastlocation.getLatitude(),Common.mLastlocation.getLongitude()),radius);
+        final GeoQuery geoQuery = gfHospitals.queryAtLocation(new GeoLocation(Common.mLastlocation.getLatitude(),Common.mLastlocation.getLongitude()),radius);
         geoQuery.removeAllListeners();
         geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
             @Override
@@ -440,10 +453,19 @@ public class AmbulanceHome extends AppCompatActivity
 
             @Override
             public void onGeoQueryReady() {
-                if(!isHospitalFound)
+                if(!isHospitalFound && radius <LIMIT)
                 {
                     radius++;
                     findHospital();
+                }
+                else {
+                    if(!isHospitalFound){
+                        Toast.makeText(AmbulanceHome.this, "No available ambulance near you", Toast.LENGTH_SHORT).show();
+                        btnFindHospitals.setText("FIND HOSPITAL");
+                        geoQuery.removeAllListeners();
+
+                    }
+
                 }
             }
 
@@ -751,11 +773,11 @@ public class AmbulanceHome extends AppCompatActivity
         }
     }
 
-        private void loadAllAvailableHospitals() {
+    private void loadAllAvailableHospitals() {
         mMap.clear();
         mMap.addMarker(new MarkerOptions().position(new LatLng(Common.mLastlocation.getLatitude(),Common.mLastlocation.getLongitude()))
-                    .title("Your Ambulance")
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                .title("Your Ambulance")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
 
         DatabaseReference hospitalLocation = FirebaseDatabase.getInstance().getReference(Common.available_Hospitals);
         GeoFire gf = new GeoFire(hospitalLocation);
@@ -854,13 +876,8 @@ public class AmbulanceHome extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_trip_history) {
 
-        } else if (id == R.id.nav_help) {
-
-        } else if (id == R.id.nav_settings) {
-
-        } else if (id == R.id.nav_signout) {
+        if (id == R.id.nav_signout) {
 
             signOutAccount();
         }
@@ -894,7 +911,7 @@ public class AmbulanceHome extends AppCompatActivity
 
     @Override
     public void onConnectionSuspended(int i) {
-    mgoogleApiClient.connect();
+        mgoogleApiClient.connect();
     }
 
     @Override
