@@ -16,6 +16,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -169,6 +170,10 @@ public class AmbulanceHome extends AppCompatActivity
     ImageView imgExpandable;
     BottomSheet mBottomSheet;
     ListView listView;
+    ImageView imageView;
+    CardView cardView;
+    private static String text_viewString;
+
 
     Runnable drawPathRunnable = new Runnable() {
         @Override
@@ -229,6 +234,17 @@ public class AmbulanceHome extends AppCompatActivity
         setContentView(R.layout.activity_ambulance_home);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        imageView = findViewById(R.id.imageview_service);
+        cardView = findViewById(R.id.rrrlayout);
+
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cardView.setVisibility(View.VISIBLE);
+
+            }
+        });
+
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -352,51 +368,66 @@ public class AmbulanceHome extends AppCompatActivity
         mService = Common.getIGoogleAPI();
         updateFirebaseToken();
 
-        /*listView = findViewById(R.id.samplelist);
+        listView = findViewById(R.id.samplelist);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    text_viewString = ((TextView)view).getText().toString();
+                    cardView.setVisibility(View.GONE);
 
             }
-        });*/
+        });
+    }
+    public static String getServices(){
+        return text_viewString;
+
     }
 
     private void sendRequestToHospital(String hospitalId) {
-        DatabaseReference tokens = FirebaseDatabase.getInstance().getReference(Common.token);
-        tokens.orderByKey().equalTo(hospitalId)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        for(DataSnapshot postsnapshot:dataSnapshot.getChildren())
-                        {
-                            Token token = postsnapshot.getValue(Token.class);
-                            String jsonlatlang = new Gson().toJson(new LatLng(Common.mLastlocation.getLatitude(),Common.mLastlocation.getLongitude()));
-                            String ambulanceToken = FirebaseInstanceId.getInstance().getToken();
-                            Notification notify = new Notification(ambulanceToken,jsonlatlang);
-                            Sender sender = new Sender(token.getToken(),notify);
-                            mfcmService.sendMessage(sender)
-                                    .enqueue(new Callback<FCMResponse>() {
-                                        @Override
-                                        public void onResponse(Call<FCMResponse> call, Response<FCMResponse> response) {
-                                            if(response.body().success ==1)
-                                                Toast.makeText(AmbulanceHome.this, "Request Sent", Toast.LENGTH_SHORT).show();
-                                            else
-                                                Toast.makeText(AmbulanceHome.this, "Request not Sent!", Toast.LENGTH_SHORT).show();
-                                        }
+        if (text_viewString != null){
+            DatabaseReference tokens = FirebaseDatabase.getInstance().getReference(Common.token);
+            tokens.orderByKey().equalTo(hospitalId)
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            for(DataSnapshot postsnapshot:dataSnapshot.getChildren())
+                            {
+                                Token token = postsnapshot.getValue(Token.class);
+                                String jsonlatlang = new Gson().toJson(new LatLng(Common.mLastlocation.getLatitude(),Common.mLastlocation.getLongitude()));
+                                String ambulanceToken = FirebaseInstanceId.getInstance().getToken();
+                                Notification notify = new Notification(ambulanceToken,text_viewString);
+                                Sender sender = new Sender(token.getToken(),notify);
+                                mfcmService.sendMessage(sender)
+                                        .enqueue(new Callback<FCMResponse>() {
+                                            @Override
+                                            public void onResponse(Call<FCMResponse> call, Response<FCMResponse> response) {
+                                                if(response.body().success ==1)
+                                                    Toast.makeText(AmbulanceHome.this, "Request Sent", Toast.LENGTH_SHORT).show();
+                                                else
+                                                    Toast.makeText(AmbulanceHome.this, "Request not Sent!", Toast.LENGTH_SHORT).show();
+                                            }
 
-                                        @Override
-                                        public void onFailure(Call<FCMResponse> call, Throwable t) {
-                                            Log.e("POWER ERROR",t.getMessage());
-                                        }
-                                    });
+                                            @Override
+                                            public void onFailure(Call<FCMResponse> call, Throwable t) {
+                                                Log.e("POWER ERROR",t.getMessage());
+                                            }
+                                        });
+                            }
                         }
-                    }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                    }
-                });
+                        }
+                    });
+
+        }
+        else{
+            Toast.makeText(this, "Victim's condition not selected", Toast.LENGTH_SHORT).show();
+            cardView.setVisibility(View.GONE);
+        }
+
+
     }
 
     private void requestHospital(String uid) {
@@ -416,7 +447,7 @@ public class AmbulanceHome extends AppCompatActivity
         mCurrent = mMap.addMarker(new MarkerOptions()
                 .title("Requesting Hospital")
                 .position(new LatLng(Common.mLastlocation.getLatitude(),Common.mLastlocation.getLongitude()))
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_me)));
 
         btnFindHospitals.setText("Finding Nearest Hospitals . . . ");
 
@@ -755,8 +786,9 @@ public class AmbulanceHome extends AppCompatActivity
                             public void onComplete(String key, DatabaseError error) {
                                 if(mCurrent!=null)
                                     mCurrent.remove();
+
                                 mCurrent = mMap.addMarker(new MarkerOptions()
-                                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_me))
                                         .position(new LatLng(latitude,longitude))
                                         .title("Your Ambulance"));
                                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude,longitude),18.0f));
@@ -768,16 +800,16 @@ public class AmbulanceHome extends AppCompatActivity
         }
         else
         {
-            Toast.makeText(this, "Cannot get your Location!", Toast.LENGTH_SHORT).show();
             Log.d("ERROR","Cannot get your Lcoation");
         }
     }
 
     private void loadAllAvailableHospitals() {
         mMap.clear();
+        mCurrent.remove();
         mMap.addMarker(new MarkerOptions().position(new LatLng(Common.mLastlocation.getLatitude(),Common.mLastlocation.getLongitude()))
                 .title("Your Ambulance")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_me)));
 
         DatabaseReference hospitalLocation = FirebaseDatabase.getInstance().getReference(Common.available_Hospitals);
         GeoFire gf = new GeoFire(hospitalLocation);

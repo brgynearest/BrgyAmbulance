@@ -21,10 +21,12 @@ public class Common  {
     public static final String available_Hospitals = "AvailableHospital";
     public static final String hospitals = "Hospitals";
     public static final String token = "Tokens";
+    public static final String CANCEL_BROADCAST = "cancel_pickup";
 
     public static Barangay currentAmbulance;
     public static Location mLastlocation=null;
     public static final String message="";
+    public static final String messagesample="";
     public static final String user_field = "email";
     public static final String pwd_field = "password";
 

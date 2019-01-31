@@ -85,7 +85,6 @@ public class VictimCall extends AppCompatActivity {
     }
 
     private void declinerequest(String victimId) {
-
         try {
             Token token = new Token(victimId);
             Notification notification = new Notification("Declined", "Brgy Ambulance has declined your request");

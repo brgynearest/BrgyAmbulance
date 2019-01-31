@@ -8,17 +8,19 @@
     tools:context=".AmbulanceHome"
     tools:showIn="@layout/app_bar_ambulance_home">
 
-   <!-- <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="300dp"
+        android:id="@+id/rrrlayout"
         android:layout_height="300dp"
         android:layout_centerInParent="true"
-        android:visibility="visible"
+        android:visibility="gone"
         app:cardElevation="10dp">
 
 
 
         <RelativeLayout
+            android:id="@+id/rrlayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="5dp">
@@ -49,7 +51,7 @@
 
         </RelativeLayout>
 
-    </android.support.v7.widget.CardView>-->
+    </android.support.v7.widget.CardView>
 
     <fragment
         android:id="@+id/map"
@@ -65,7 +67,13 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/imageview_service"
+                android:layout_alignParentRight="true"
+                android:src="@drawable/ic_keyboard_arrow_up"
+                />
 
         <LinearLayout
             android:orientation="horizontal"
@@ -73,6 +81,7 @@
             android:layout_margin="16dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
+
 
             <com.github.glomadrian.materialanimatedswitch.MaterialAnimatedSwitch
 
@@ -93,7 +102,7 @@
                 android:text="Find Hospital"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:background="@drawable/button_sign"
+                android:background="@color/grey"
                 android:textColor="@android:color/white"/>
         </LinearLayout>
         </RelativeLayout>

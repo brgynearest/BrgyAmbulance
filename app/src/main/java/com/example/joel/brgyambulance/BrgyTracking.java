@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 import com.example.joel.brgyambulance.Helper.DirectionJSONParser;
 import com.example.joel.brgyambulance.Interaction.Common;
+import com.example.joel.brgyambulance.Model.Barangay;
 import com.example.joel.brgyambulance.Model.FCMResponse;
 import com.example.joel.brgyambulance.Model.Notification;
 import com.example.joel.brgyambulance.Model.Sender;
@@ -215,7 +216,7 @@ public class BrgyTracking extends FragmentActivity implements OnMapReadyCallback
 
     private void sendArrivedNotification(String victimId) {
         Token token  = new Token(victimId);
-        Notification notification = new Notification("Arrived",String.format("The Ambulance has arrived to rescue"));
+        Notification notification = new Notification("Arrived",String.format("Ambulance has arrived to rescue"));
         Sender sender = new Sender(token.getToken(),notification);
 
         mFCMService.sendMessage(sender).enqueue(new Callback<FCMResponse>() {
@@ -277,7 +278,6 @@ public class BrgyTracking extends FragmentActivity implements OnMapReadyCallback
                /* getDirection();*/
 
             } else {
-                Toast.makeText(this, "Cannot get Location!", Toast.LENGTH_SHORT).show();
                 Log.d("ERROR", "Cannot get your Lcoation");
             }
         }catch (Exception e){
